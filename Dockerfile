@@ -11,9 +11,9 @@ RUN npm ci --only=production
 # Copy the rest of the application
 COPY . .
 
-# Create a non-root user and switch to it
-RUN addgroup -g 1000 botuser && \
-    adduser -u 1000 -G botuser -s /bin/sh -D botuser && \
+# Create a non-root user and switch to it (letting Alpine assign IDs)
+RUN addgroup botuser && \
+    adduser -G botuser -s /bin/sh -D botuser && \
     chown -R botuser:botuser /app
 
 USER botuser
