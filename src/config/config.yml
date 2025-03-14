@@ -1,0 +1,9 @@
+# Bot Configuration
+bot:
+  # Bot's presence (status) configuration
+  presence:
+    type: PLAYING # Activity type: PLAYING, STREAMING, LISTENING, WATCHING, COMPETING
+    text: "Legend of Mushroom" # Text to display under the bot's name
+    status: online # Bot's status: online, idle, dnd, invisible
+
+# Other bot settings can be added here

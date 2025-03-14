@@ -1,0 +1,27 @@
+# Version control
+.git
+.gitignore
+
+# Node.js
+node_modules
+npm-debug.log
+
+# Environment variables
+.env
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Logs
+logs/*
+
+# Editor directories
+.vscode
+.idea
+
+# Other
+README.md
+.DS_Store
+docker 

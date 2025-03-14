@@ -1,0 +1,37 @@
+# Lamp Rarity Configuration
+# Each rarity has associated XP and Gold values
+
+rarities:
+  Normal:
+    xp: 96
+    gold: 82
+  Unique:
+    xp: 129
+    gold: 108
+  Well:
+    xp: 137.5
+    gold: 118
+  Rare:
+    xp: 165
+    gold: 145
+  Mythic:
+    xp: 200
+    gold: 175
+  Epic:
+    xp: 240
+    gold: 205
+  Legendary:
+    xp: 287.5
+    gold: 248
+  Immortal:
+    xp: 345
+    gold: 300
+  Supreme:
+    xp: 412.5
+    gold: 350
+  Aurous:
+    xp: 500
+    gold: 400
+  Eternal:
+    xp: 599
+    gold: 512
