@@ -5,14 +5,47 @@ const logger = require('../utils/logger');
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
+const { getMessage, getLanguageValue } = require('../utils/languageManager');
+
+// Load lamp configuration
+const loadLampConfig = () => {
+  try {
+    const yamlPath = path.join(__dirname, '../config/lampConfig.yml');
+    if (fs.existsSync(yamlPath)) {
+      const fileContents = fs.readFileSync(yamlPath, 'utf8');
+      return yaml.load(fileContents);
+    }
+    logger.logWarn('lamps', 'No lamp config file found, using default configuration');
+    return {
+      lamps: {
+        common: { base: 100, multiplier: 1 },
+        rare: { base: 200, multiplier: 1.5 },
+        epic: { base: 300, multiplier: 2 },
+        legendary: { base: 400, multiplier: 2.5 }
+      }
+    };
+  } catch (error) {
+    logger.logError('lamps', error);
+    return {
+      lamps: {
+        common: { base: 100, multiplier: 1 },
+        rare: { base: 200, multiplier: 1.5 },
+        epic: { base: 300, multiplier: 2 },
+        legendary: { base: 400, multiplier: 2.5 }
+      }
+    };
+  }
+};
+
+const lampConfig = loadLampConfig();
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('lamps')
-    .setDescription('Calculate how many lamps you need for a specific XP or gold amount')
+    .setDescription(getLanguageValue('commands.lamps.description', 'Calculate how many lamps you need for a specific XP or gold amount'))
     .addStringOption(option =>
       option.setName('type')
-        .setDescription('What you want to calculate (XP or Gold)')
+        .setDescription(getLanguageValue('commands.lamps.option_type', 'What you want to calculate (XP or Gold)'))
         .setRequired(true)
         .addChoices(
           { name: 'XP', value: 'xp' },
@@ -20,13 +53,13 @@ module.exports = {
         ))
     .addIntegerOption(option =>
       option.setName('level')
-        .setDescription('The lamp level (1-32)')
+        .setDescription(getLanguageValue('commands.lamps.option_level', 'The lamp level (1-32)'))
         .setRequired(true)
         .setMinValue(1)
         .setMaxValue(32))
     .addIntegerOption(option =>
-      option.setName('target')
-        .setDescription('Your target XP or gold amount')
+      option.setName('amount')
+        .setDescription(getLanguageValue('commands.lamps.option_amount', 'Your target XP or gold amount'))
         .setRequired(true)
         .setMinValue(1)),
   
@@ -34,14 +67,12 @@ module.exports = {
     try {
       const type = interaction.options.getString('type');
       const lampLevel = interaction.options.getInteger('level');
-      const targetAmount = interaction.options.getInteger('target');
+      const targetAmount = interaction.options.getInteger('amount');
       
       const result = calculateLampsNeeded(type, lampLevel, targetAmount);
       
       // Load rarities data
-      const configPath = path.join(__dirname, '../config/lampConfig.yml');
-      const fileContents = fs.readFileSync(configPath, 'utf8');
-      const config = yaml.load(fileContents);
+      const config = lampConfig;
       
       // Set emoji and title based on type
       const typeEmoji = type === 'xp' ? '⚡' : '💰';
@@ -87,26 +118,19 @@ module.exports = {
       
       const embed = new EmbedBuilder()
         .setColor(embedColor)
-        .setTitle(`${typeEmoji} ${typeName} Requirement Calculator`)
-        .setDescription(`Here's how many lamps you'll need for ${result.targetAmount.toLocaleString()} ${typeName} at lamp level ${lampLevel}.`)
+        .setTitle(getMessage('commands.lamps.embed.title', { typeEmoji, typeName }, `${typeEmoji} ${typeName} Requirement Calculator`))
+        .setDescription(getMessage('commands.lamps.embed.description', { 
+          targetAmount: targetAmount.toLocaleString(), 
+          typeName, 
+          lampLevel 
+        }, `Here's how many lamps you'll need for ${targetAmount.toLocaleString()} ${typeName} at lamp level ${lampLevel}.`))
         .addFields(
-          { 
-            name: `Expected ${typeName} per Lamp`,
-            value: `${result.averagePerLamp.toFixed(2)} ${typeName}`,
-            inline: true
-          },
-          { 
-            name: 'Required Lamps',
-            value: `${result.lampsNeeded.toLocaleString()} lamps`, 
-            inline: true 
-          },
-          { 
-            name: `Total ${typeName}`,
-            value: `${totalObtained.toFixed(2)} ${typeName}`, 
-            inline: true 
-          },
+          { name: 'Expected per Lamp', value: `${result.averagePerLamp.toLocaleString()} ${typeName}`, inline: true },
+          { name: 'Required Lamps', value: `${result.lampsNeeded.toLocaleString()} lamps`, inline: true },
+          { name: 'Total Obtained', value: `${totalObtained.toLocaleString()} ${typeName}`, inline: true },
+          { name: 'Chance per Item', value: `${result.chancePerItem}%`, inline: true },
           {
-            name: `Lamp Level Item Chances`,
+            name: 'Lamp Level Item Chances',
             value: itemChancesText,
             inline: false
           }
@@ -115,7 +139,7 @@ module.exports = {
       
       await interaction.reply({
         embeds: [embed],
-        flags: 64
+        flags: 0 // Not ephemeral, so others can see the calculation
       });
       
       // Success logging is now handled in interactionCreate.js
@@ -124,15 +148,17 @@ module.exports = {
       // Log the error using our logger utility - this is now redundant but keeping for safety
       logger.logError('lamps', error);
       
+      // Create an error embed
       const errorEmbed = new EmbedBuilder()
-        .setColor(0xff0000) // Red color for errors
-        .setTitle('❌ Error')
-        .setDescription(`Failed to calculate lamp requirements: ${error.message}`)
-        .setFooter({ text: 'Please try again with different parameters' });
+        .setColor(0xff0000) // Red
+        .setTitle(getMessage('commands.lamps.error.title', {}, '❌ Error'))
+        .setDescription(getMessage('commands.lamps.error.description', { error: error.message }, `Failed to calculate lamp requirements: ${error.message}`))
+        .setFooter({ text: 'Legend of Mushroom Bot' });
       
+      // Send the error embed
       await interaction.reply({
         embeds: [errorEmbed],
-        flags: 64
+        flags: 64 // Ephemeral, only visible to the user
       });
     }
   },

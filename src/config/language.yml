@@ -1,0 +1,100 @@
+# Countdown messages
+countdown:
+  embed:
+    color: "0x3498db"
+    title: "⏰ Server Reset Countdown"
+    description: "Time remaining until **{serverName}** resets at **{resetTime}** **{timezone}**."
+    thumbnail: "https://i.imgur.com/bbGNjdZ.png"
+    fields:
+      time_remaining:
+        name: "⏱️ Time Until Reset"
+        value: "**{timeRemaining}**"
+        inline: true
+      next_reset:
+        name: "🕒 Reset Time"
+        value: "**{resetTime} {timezone}**"
+        inline: true
+      server:
+        name: "🖥️ Server"
+        value: "**{serverName}**"
+        inline: true
+    footer: "Legend of Mushroom Bot • Last updated: {currentTime}"
+  error:
+    title: "⚠️ Error Creating Countdown"
+    description: "There was an error creating the countdown display. Please check the bot logs."
+
+# Reset announcement messages
+reset:
+  embed:
+    color: "15844367" # Orange color (0xF1C40F)
+    title: "🔄 Server Reset Complete"
+    description: "**{serverName}** was reset at **{resetTime}** **{timezone}**."
+    thumbnail: "https://i.imgur.com/bbGNjdZ.png"
+    fields:
+      time_elapsed:
+        name: "⏱️ Time Since Reset"
+        value: "**{timeElapsed}**"
+        inline: true
+      reset_time:
+        name: "🕒 Reset Time"
+        value: "**{resetTime} {timezone}**"
+        inline: true
+      server:
+        name: "🖥️ Server"
+        value: "**{serverName}**"
+        inline: true
+    footer: "Legend of Mushroom Bot • This message will auto-delete in {deleteTime}"
+  auto_delete_hours: 3
+
+# Welcome messages
+welcome:
+  member_join: "{member} has joined the New Order!"
+
+# Command descriptions
+commands:
+  announcement_channel:
+    description: "Set the channel for server reset countdown announcements"
+    option_channel: "The channel for server reset announcements"
+    no_permissions: "❌ I don't have permissions to send messages in {channel}. Please give me the required permissions and try again."
+    config_failed: "❌ Failed to update configuration. Please check the bot logs."
+    success: "✅ Server reset countdown will now be posted in {channel}"
+    start_failed: "⚠️ Configuration saved, but there was an issue starting the countdown. Please check the bot logs or try again later."
+    error: "❌ Failed to set announcement channel: {error}"
+
+  welcome_channel:
+    description: "Set the channel for welcome messages"
+    option_channel: "The channel for welcome messages"
+    no_permissions: "❌ I don't have permissions to send messages in {channel}. Please give me the required permissions and try again."
+    config_failed: "❌ Failed to update configuration. Please check the bot logs."
+    success: "✅ Welcome messages will now be sent in {channel}"
+    error: "❌ Failed to set welcome channel: {error}"
+
+  reload_presence:
+    description: "Reload the bot's status/presence from the config file"
+    success: "✅ Bot presence updated to: **{type} {text}** ({status})"
+    error: "❌ Failed to update bot presence: {error}"
+
+  reset_announcement:
+    description: "Manually send a server reset announcement"
+    no_config: "This server is not configured for countdown announcements. Please set up a countdown channel first."
+    no_channel: "No announcement channel is configured for this server. Please set up a countdown channel first."
+    success: "✅ Server reset announcement sent"
+    error: "❌ Failed to send reset announcement: {error}"
+
+  reset_delete:
+    description: "Delete the server reset complete message"
+    no_config: "This server is not configured for countdown announcements. Please set up a countdown channel first."
+    no_channel: "No announcement channel is configured for this server. Please set up a countdown channel first."
+    success: "✅ Server reset complete message has been deleted."
+    error: "❌ Failed to delete reset message: {error}"
+
+  reset_notify:
+    description: "Set a role to be notified when the server resets"
+    option_role: "The role to notify when the server resets"
+    no_config: "This server is not configured for countdown announcements. Please set up a countdown channel first."
+    success: "✅ The role {roleName} will now be notified when the server resets."
+    error: "❌ Failed to set reset notification role. Please check the bot logs."
+
+# General error messages
+errors:
+  command_execution: "There was an error while executing this command!"

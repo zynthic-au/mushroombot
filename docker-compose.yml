@@ -8,7 +8,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./config:/app/config
+      - ./src/config:/app/src/config
       - ./logs:/app/logs
     networks:
       - bot-network

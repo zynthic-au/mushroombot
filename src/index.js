@@ -3,6 +3,8 @@ const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord
 const fs = require('fs');
 const path = require('path');
 const logger = require('./utils/logger');
+const { initializeCountdown } = require('./utils/countdownManager');
+const { loadConfig } = require('./utils/configManager');
 
 // Create a new client instance
 const client = new Client({
@@ -10,6 +12,7 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers,
   ]
 });
 
@@ -27,7 +30,7 @@ for (const file of commandFiles) {
   if ('data' in command && 'execute' in command) {
     client.commands.set(command.data.name, command);
   } else {
-    logger.logInfo('loader', `[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+    logger.logWarn('loader', `The command at ${filePath} is missing a required "data" or "execute" property.`);
   }
 }
 
@@ -71,10 +74,33 @@ for (const file of eventFiles) {
   }
 }
 
-// When the client is ready, register commands and log that we're ready
-client.once('ready', () => {
-  logger.logInfo('system', `Logged in as ${client.user.tag}!`);
-  registerCommands();
+// When the client is ready, register commands and initialize features
+client.once('ready', async () => {
+  logger.logStartup(`Logged in as ${client.user.tag}`);
+  
+  // Register commands
+  await registerCommands();
+  
+  // Load configuration
+  loadConfig();
+  
+  // Initialize the server reset countdown
+  await initializeCountdown(client);
+  
+  logger.logSuccess('system', 'Bot initialization complete!');
+});
+
+// Handle graceful shutdown
+process.on('SIGINT', () => {
+  logger.logShutdown('Received SIGINT signal');
+  client.destroy();
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  logger.logShutdown('Received SIGTERM signal');
+  client.destroy();
+  process.exit(0);
 });
 
 // Login to Discord with your token

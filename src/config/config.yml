@@ -1,9 +1,18 @@
-# Bot Configuration
 bot:
-  # Bot's presence (status) configuration
   presence:
-    type: PLAYING # Activity type: PLAYING, STREAMING, LISTENING, WATCHING, COMPETING
-    text: "Legend of Mushroom" # Text to display under the bot's name
-    status: online # Bot's status: online, idle, dnd, invisible
-
-# Other bot settings can be added here
+    type: PLAYING
+    text: Legend of Mushroom
+    status: online
+countdown:
+  updateInterval: 1000
+  resetTime: '00:00:00'
+  timezone: UTC-4
+  serverName: AMEN-769
+  guilds:
+    '1348560897362104330':
+      channelId: '1348560897362104333'
+  channelId: null
+welcome:
+  guilds:
+    '1348560897362104330':
+      channelId: '1348560897362104333'

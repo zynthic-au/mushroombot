@@ -1,4 +1,5 @@
 const logger = require('../utils/logger');
+const { getMessage } = require('../utils/languageManager');
 
 module.exports = {
   name: 'interactionCreate',
@@ -8,7 +9,7 @@ module.exports = {
     const command = interaction.client.commands.get(interaction.commandName);
 
     if (!command) {
-      console.error(`No command matching ${interaction.commandName} was found.`);
+      logger.logWarn('commands', `No command matching ${interaction.commandName} was found`);
       return;
     }
 
@@ -25,15 +26,18 @@ module.exports = {
       logger.logError(interaction.commandName, error);
       logger.logCommand(interaction, 'Error', error.message);
       
+      // Get error message from language file
+      const errorMessage = getMessage('errors.command_execution', {}, 'There was an error while executing this command!');
+      
       // Reply to the user with an error message
       if (interaction.replied || interaction.deferred) {
         await interaction.followUp({ 
-          content: 'There was an error while executing this command!', 
+          content: errorMessage, 
           flags: 64
         });
       } else {
         await interaction.reply({ 
-          content: 'There was an error while executing this command!', 
+          content: errorMessage, 
           flags: 64
         });
       }

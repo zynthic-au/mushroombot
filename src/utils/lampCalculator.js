@@ -1,19 +1,41 @@
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
+const logger = require('./logger');
 const { levelChances } = require('../data/lampProbability');
 
-// Load lamp rarity configuration
+// Load lamp configuration
 const loadLampConfig = () => {
   try {
-    const configPath = path.join(__dirname, '../config/lampConfig.yml');
-    const fileContents = fs.readFileSync(configPath, 'utf8');
-    return yaml.load(fileContents);
+    const yamlPath = path.join(__dirname, '../config/lampConfig.yml');
+    if (fs.existsSync(yamlPath)) {
+      const fileContents = fs.readFileSync(yamlPath, 'utf8');
+      return yaml.load(fileContents);
+    }
+    logger.logWarn('lampCalculator', 'No lamp config file found, using default configuration');
+    return {
+      lamps: {
+        // Default lamp configuration
+        common: { base: 100, multiplier: 1 },
+        rare: { base: 200, multiplier: 1.5 },
+        epic: { base: 300, multiplier: 2 },
+        legendary: { base: 400, multiplier: 2.5 }
+      }
+    };
   } catch (error) {
-    console.error('Error loading lamp configuration:', error);
-    return null;
+    logger.logError('lampCalculator', error);
+    return {
+      lamps: {
+        common: { base: 100, multiplier: 1 },
+        rare: { base: 200, multiplier: 1.5 },
+        epic: { base: 300, multiplier: 2 },
+        legendary: { base: 400, multiplier: 2.5 }
+      }
+    };
   }
 };
+
+const lampConfig = loadLampConfig();
 
 /**
  * Calculate the average XP or gold per lamp for a specific lamp level

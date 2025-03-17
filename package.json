@@ -1,18 +1,30 @@
 {
   "name": "mushroombot",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Discord bot for server reset countdowns and announcements",
+  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
   },
-  "keywords": [],
+  "keywords": [
+    "discord",
+    "bot",
+    "countdown",
+    "reset",
+    "timer"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "discord.js": "^14.18.0",
     "dotenv": "^16.4.7",
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.1.0",
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.5.45"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
   }
 }
