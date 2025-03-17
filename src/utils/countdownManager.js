@@ -698,83 +698,90 @@ async function recreateCountdownMessage(client, guildId, channelId, embed) {
 // ===========================
 
 /**
- * Send a reset announcement and start the count-up timer
- * @param {Client} client - Discord.js client
- * @param {string} guildId - ID of the guild
- * @param {string} channelId - ID of the channel to post in
- * @param {Date} [resetTime] - Optional specific reset time to use
- * @returns {Promise<boolean>} True if started successfully, false otherwise
+ * Sends a reset announcement message with an optional role mention and starts a count-up timer.
+ * @param {import('discord.js').Client} client - The Discord.js client instance.
+ * @param {string} guildId - The ID of the guild where the announcement is sent.
+ * @param {string} channelId - The ID of the channel to post the announcement in.
+ * @param {Date} [resetTime] - The specific reset time to use; defaults to current time if omitted.
+ * @returns {Promise<boolean>} Resolves to true if the announcement is sent successfully, false otherwise.
  */
 async function sendResetAnnouncement(client, guildId, channelId, resetTime = null) {
   try {
-    if (!client || !guildId || !channelId) {
-      logger.logError('reset', `Invalid parameters for reset announcement`);
+    // Validate inputs
+    if (!client?.isReady() || !guildId || !channelId) {
+      logger.logError('reset', 'Invalid parameters: client, guildId, or channelId missing or invalid');
       return false;
     }
-    
-    // Stop any existing reset timer for this guild
-    stopResetTimer(guildId);
-    
-    // Get the channel
-    const channel = await client.channels.fetch(channelId).catch((error) => {
-      logger.logError('reset', `Failed to fetch channel for reset announcement: ${error.message}`);
+
+    // Fetch guild and channel
+    const guild = await client.guilds.fetch(guildId).catch((error) => {
+      logger.logError('reset', `Failed to fetch guild ${guildId}: ${error.message}`);
       return null;
     });
-    
-    if (!channel) {
-      logger.logError('reset', `Could not find channel with ID ${channelId} for reset announcement`);
+    const channel = await client.channels.fetch(channelId).catch((error) => {
+      logger.logError('reset', `Failed to fetch channel ${channelId}: ${error.message}`);
+      return null;
+    });
+
+    if (!guild || !channel || !channel.isTextBased()) {
+      logger.logError('reset', `Invalid guild (${guildId}) or channel (${channelId})`);
       return false;
     }
-    
-    // Use provided reset time or create new one
-    const actualResetTime = resetTime || new Date();
+
+    // Stop any existing reset timer for this guild
+    stopResetTimer(guildId);
+
+    // Set reset time
+    const actualResetTime = resetTime instanceof Date && !isNaN(resetTime) ? resetTime : new Date();
     state.lastResetTimes.set(guildId, actualResetTime);
-    
+
     // Create initial reset embed
     const embed = createResetEmbed(guildId, actualResetTime);
     if (!embed) {
       logger.logError('reset', `Failed to create reset embed for guild ${guildId}`);
       return false;
     }
-    
-    // Get the notification role if configured
+
+    // Get notification role mention
     const config = getConfig();
     const notifyRoleId = config.countdown?.guilds?.[guildId]?.notifyRoleId;
     let content = '';
-    
+
     if (notifyRoleId) {
-      // Ensure we're using the correct mention format without any extra @ symbols
-      content = `<@&${notifyRoleId}> `;  // Add a space after the mention
-      logger.logInfo('reset', `Including role notification for role ID ${notifyRoleId}`);
+      const role = guild.roles.cache.get(notifyRoleId);
+      if (role) {
+        content = `${role}`; // Use role.toString() for clean mention
+        logger.logInfo('reset', `Including role notification for role ID ${notifyRoleId} (${role.name})`);
+      } else {
+        logger.logWarn('reset', `Role ID ${notifyRoleId} not found in guild ${guildId}`);
+      }
     }
-    
-    // Send the initial message with role mention
-    const message = await channel.send({ 
+
+    // Send the announcement
+    const message = await channel.send({
       content,
-      embeds: [embed] 
+      embeds: [embed],
     }).catch((error) => {
-      logger.logError('reset', `Failed to send reset announcement: ${error.message}`);
+      logger.logError('reset', `Failed to send reset announcement in channel ${channelId}: ${error.message}`);
       return null;
     });
-    
+
     if (!message) {
-      logger.logError('reset', `Failed to send reset announcement in channel ${channelId}`);
       return false;
     }
-    
-    // Save the message reference
+
+    // Store message reference
     state.resetMessages.set(guildId, message);
-    
-    // Set up interval to update the message
-    const interval = setInterval(() => updateResetTimer(guildId), 60000); // Update every minute
-    
-    // Save the interval reference
+
+    // Start update timer (configurable interval)
+    const updateIntervalMs = config.countdown?.updateIntervalMs || 60000; // Default to 1 minute
+    const interval = setInterval(() => updateResetTimer(guildId), updateIntervalMs);
     state.resetTimers.set(guildId, interval);
-    
-    logger.logInfo('reset', `Server reset announcement sent for guild ${guildId}, channel ${channel.name}`);
+
+    logger.logInfo('reset', `Server reset announcement sent for guild ${guildId} in channel ${channel.name}`);
     return true;
   } catch (error) {
-    logger.logError('reset', `Failed to send reset announcement for guild ${guildId}: ${error.message}`);
+    logger.logError('reset', `Unexpected error sending reset announcement for guild ${guildId}: ${error.message}`);
     return false;
   }
 }
