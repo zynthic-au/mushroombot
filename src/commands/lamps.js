@@ -128,7 +128,6 @@ module.exports = {
           { name: 'Expected per Lamp', value: `${result.averagePerLamp.toLocaleString()} ${typeName}`, inline: true },
           { name: 'Required Lamps', value: `${result.lampsNeeded.toLocaleString()} lamps`, inline: true },
           { name: 'Total Obtained', value: `${totalObtained.toLocaleString()} ${typeName}`, inline: true },
-          { name: 'Chance per Item', value: `${result.chancePerItem}%`, inline: true },
           {
             name: 'Lamp Level Item Chances',
             value: itemChancesText,
